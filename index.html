@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickBite Drive-Thru - Fast Food Ordering</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #DA291C;
+    --red-dark: #A01F14;
+    --red-light: #FF3B2E;
+    --yellow: #FFC72C;
+    --yellow-dark: #E6A800;
+    --yellow-light: #FFD966;
+    --black: #1A1A1A;
+    --dark: #0D0D0D;
+    --gray: #F5F0E8;
+    --gray-mid: #E8E0D0;
+    --text-muted: #6B5B45;
+    --white: #FFFFFF;
+    --success: #1DB954;
+    --shadow: 0 4px 24px rgba(0,0,0,0.12);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--dark);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(13,13,13,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--yellow);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.8rem; color: var(--yellow);
+    letter-spacing: 2px;
+  }
+  .nav-logo span { color: var(--red); }
+  .nav-links { display: flex; gap: 0.25rem; }
+  .nav-links a {
+    padding: 0.5rem 1rem; border-radius: 6px;
+    color: #ccc; text-decoration: none;
+    font-weight: 600; font-size: 0.85rem;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--yellow); background: rgba(255,199,44,0.1);
+  }
+  .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+  .btn-cart {
+    position: relative;
+    background: var(--yellow); color: var(--black);
+    border: none; padding: 0.5rem 1.25rem; border-radius: 8px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: all 0.2s; font-family: 'Barlow', sans-serif;
+  }
+  .btn-cart:hover { background: var(--yellow-dark); transform: translateY(-1px); }
+  .cart-count {
+    position: absolute; top: -6px; right: -6px;
+    background: var(--red); color: white;
+    border-radius: 50%; width: 18px; height: 18px;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-login {
+    background: transparent; color: var(--white);
+    border: 1.5px solid rgba(255,255,255,0.3); padding: 0.5rem 1.25rem;
+    border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s; font-family: 'Barlow', sans-serif;
+  }
+  .btn-login:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  /* PAGES */
+  .page { display: none; min-height: 100vh; padding-top: 64px; }
+  .page.active { display: block; }
+
+  /* HERO */
+  #page-home .hero {
+    min-height: calc(100vh - 64px);
+    background: linear-gradient(135deg, #1A0800 0%, #0D0D0D 50%, #1A0A00 100%);
+    display: flex; align-items: center;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg-pattern {
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      -45deg, transparent, transparent 40px,
+      rgba(255,199,44,0.03) 40px, rgba(255,199,44,0.03) 80px
+    );
+  }
+  .hero-content {
+    max-width: 1200px; margin: 0 auto; padding: 4rem 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,199,44,0.15); border: 1px solid rgba(255,199,44,0.4);
+    padding: 0.4rem 1rem; border-radius: 100px;
+    font-size: 0.8rem; font-weight: 700; color: var(--yellow);
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem;
+  }
+  .hero-badge::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--yellow); animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title .accent { color: var(--yellow); }
+  .hero-title .red { color: var(--red); }
+  .hero-subtitle {
+    font-size: 1.1rem; color: #aaa; line-height: 1.7; margin-bottom: 2rem;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--yellow); color: var(--black);
+    border: none; padding: 0.9rem 2rem; border-radius: 10px;
+    font-weight: 800; font-size: 1rem; cursor: pointer;
+    transition: all 0.25s; font-family: 'Barlow', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .btn-primary:hover { background: var(--yellow-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,199,44,0.3); }
+  .btn-secondary {
+    background: transparent; color: var(--white);
+    border: 2px solid rgba(255,255,255,0.25); padding: 0.9rem 2rem;
+    border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer;
+    transition: all 0.25s; font-family: 'Barlow', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .btn-secondary:hover { border-color: var(--yellow); color: var(--yellow); }
+  .hero-stats {
+    display: flex; gap: 2rem; margin-top: 3rem;
+    padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num { font-family: 'Bebas Neue', cursive; font-size: 2.2rem; color: var(--yellow); }
+  .hero-stat .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+  .hero-visual {
+    display: flex; flex-direction: column; gap: 1rem; align-items: center;
+  }
+  .order-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,199,44,0.2);
+    border-radius: 16px; padding: 1.5rem;
+    width: 100%; max-width: 360px;
+    backdrop-filter: blur(10px);
+  }
+  .order-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem;
+    font-weight: 700; font-size: 0.9rem;
+  }
+  .order-status-badge {
+    padding: 0.3rem 0.75rem; border-radius: 100px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  }
+  .status-preparing { background: rgba(255,199,44,0.2); color: var(--yellow); }
+  .status-ready { background: rgba(29,185,84,0.2); color: var(--success); }
+  .status-received { background: rgba(218,41,28,0.2); color: var(--red); }
+  .order-items { display: flex; flex-direction: column; gap: 0.5rem; }
+  .order-item {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.9rem; padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .order-item:last-child { border-bottom: none; }
+  .order-item .item-name { color: #ddd; }
+  .order-item .item-price { color: var(--yellow); font-weight: 700; }
+  .progress-track {
+    display: flex; gap: 0.5rem; margin-top: 1rem;
+    justify-content: space-between;
+  }
+  .progress-step {
+    flex: 1; padding: 0.4rem; border-radius: 6px;
+    text-align: center; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .step-done { background: var(--red); color: white; }
+  .step-active { background: var(--yellow); color: var(--black); animation: stepPulse 1.5s infinite; }
+  .step-pending { background: rgba(255,255,255,0.08); color: #666; }
+  @keyframes stepPulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .drive-thru-badge {
+    background: var(--red); color: white;
+    padding: 1rem 1.5rem; border-radius: 12px;
+    width: 100%; max-width: 360px;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .drive-thru-icon { font-size: 2rem; }
+  .drive-thru-text h4 { font-weight: 800; font-size: 1rem; }
+  .drive-thru-text p { font-size: 0.8rem; opacity: 0.85; margin-top: 0.2rem; }
+
+  /* FEATURES */
+  .features-section {
+    background: var(--black);
+    padding: 5rem 2rem;
+  }
+  .section-header { text-align: center; margin-bottom: 3rem; }
+  .section-label {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 3px; color: var(--yellow); margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    letter-spacing: 2px;
+  }
+  .features-grid {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 2rem 1.5rem;
+    transition: all 0.3s;
+  }
+  .feature-card:hover {
+    background: rgba(255,199,44,0.05);
+    border-color: rgba(255,199,44,0.3);
+    transform: translateY(-4px);
+  }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--red); display: flex; align-items: center;
+    justify-content: center; font-size: 1.4rem; margin-bottom: 1rem;
+  }
+  .feature-card h3 { font-weight: 800; font-size: 1rem; margin-bottom: 0.5rem; }
+  .feature-card p { font-size: 0.875rem; color: #888; line-height: 1.6; }
+
+  /* MENU PAGE */
+  #page-menu { background: #111; }
+  .menu-header {
+    background: var(--red);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+  }
+  .menu-header h1 { font-family: 'Bebas Neue', cursive; font-size: 3rem; letter-spacing: 3px; }
+  .menu-header p { color: rgba(255,255,255,0.8); margin-top: 0.5rem; }
+  .category-tabs {
+    display: flex; gap: 0.5rem; overflow-x: auto;
+    padding: 1.5rem 2rem; background: #0D0D0D;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: sticky; top: 64px; z-index: 100;
+    scrollbar-width: none;
+  }
+  .category-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    white-space: nowrap;
+    padding: 0.5rem 1.25rem; border-radius: 100px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: transparent; color: #aaa;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s; font-family: 'Barlow', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .tab-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+  .tab-btn.active { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+  .menu-layout {
+    display: grid; grid-template-columns: 1fr 340px;
+    gap: 0; min-height: 100vh;
+  }
+  .menu-grid-area { padding: 2rem; }
+  .menu-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;
+  }
+  .menu-item-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; overflow: hidden;
+    transition: all 0.3s; cursor: pointer;
+  }
+  .menu-item-card:hover {
+    border-color: rgba(255,199,44,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  .menu-item-img {
+    width: 100%; height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5rem; position: relative; overflow: hidden;
+  }
+  .menu-item-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: var(--red); color: white;
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 0.25rem 0.6rem; border-radius: 4px;
+  }
+  .ai-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--yellow); color: var(--black);
+    font-size: 0.65rem; font-weight: 700;
+    padding: 0.25rem 0.6rem; border-radius: 4px;
+  }
+  .menu-item-info { padding: 1.25rem; }
+  .menu-item-info h3 { font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; }
+  .menu-item-info p { font-size: 0.8rem; color: #888; line-height: 1.5; margin-bottom: 0.75rem; }
+  .menu-item-footer { display: flex; justify-content: space-between; align-items: center; }
+  .menu-item-price { font-family: 'Bebas Neue', cursive; font-size: 1.5rem; color: var(--yellow); }
+  .add-btn {
+    background: var(--red); color: white; border: none;
+    width: 36px; height: 36px; border-radius: 8px;
+    font-size: 1.3rem; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow', sans-serif;
+  }
+  .add-btn:hover { background: var(--red-dark); transform: scale(1.1); }
+
+  /* CART SIDEBAR */
+  .cart-sidebar {
+    background: rgba(0,0,0,0.6);
+    border-left: 1px solid rgba(255,255,255,0.08);
+    padding: 2rem 1.5rem;
+    position: sticky; top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .cart-title { font-family: 'Bebas Neue', cursive; font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 1.5rem; color: var(--yellow); }
+  .cart-items { flex: 1; overflow-y: auto; margin-bottom: 1.5rem; }
+  .cart-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .cart-item-emoji { font-size: 1.8rem; flex-shrink: 0; }
+  .cart-item-name { flex: 1; font-weight: 600; font-size: 0.85rem; }
+  .cart-item-controls { display: flex; align-items: center; gap: 0.4rem; }
+  .qty-btn {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent; color: white; cursor: pointer;
+    font-size: 0.9rem; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; font-family: 'Barlow', sans-serif;
+  }
+  .qty-btn:hover { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+  .cart-item-qty { font-weight: 700; font-size: 0.9rem; min-width: 20px; text-align: center; }
+  .cart-item-price { color: var(--yellow); font-weight: 700; font-size: 0.9rem; min-width: 50px; text-align: right; }
+  .cart-empty { text-align: center; color: #555; padding: 3rem 0; font-size: 0.9rem; }
+  .cart-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 0.75rem 0; }
+  .cart-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; }
+  .cart-row.total { font-weight: 800; font-size: 1rem; color: var(--yellow); }
+  .pickup-options { margin: 1rem 0; }
+  .pickup-option {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem; border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,0.1);
+    margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s;
+  }
+  .pickup-option.selected { border-color: var(--yellow); background: rgba(255,199,44,0.08); }
+  .pickup-option input[type="radio"] { accent-color: var(--yellow); }
+  .pickup-label { font-weight: 600; font-size: 0.85rem; }
+  .pickup-label small { display: block; color: #888; font-weight: 400; font-size: 0.75rem; }
+  .checkout-btn {
+    width: 100%; background: var(--yellow); color: var(--black);
+    border: none; padding: 1rem; border-radius: 12px;
+    font-weight: 900; font-size: 1rem; cursor: pointer;
+    transition: all 0.25s; font-family: 'Barlow', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .checkout-btn:hover { background: var(--yellow-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,199,44,0.3); }
+
+  /* STORES PAGE */
+  #page-stores { background: #111; }
+  .stores-layout { display: grid; grid-template-columns: 360px 1fr; min-height: calc(100vh - 64px); }
+  .stores-sidebar { background: var(--dark); border-right: 1px solid rgba(255,255,255,0.08); overflow-y: auto; }
+  .stores-sidebar-header { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .stores-sidebar-header h2 { font-family: 'Bebas Neue', cursive; font-size: 1.5rem; letter-spacing: 2px; color: var(--yellow); }
+  .location-btn {
+    margin-top: 0.75rem; width: 100%;
+    background: rgba(255,199,44,0.1); border: 1px solid rgba(255,199,44,0.3);
+    color: var(--yellow); padding: 0.6rem;
+    border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s; font-family: 'Barlow', sans-serif;
+  }
+  .location-btn:hover { background: rgba(255,199,44,0.2); }
+  .store-card {
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .store-card:hover { background: rgba(255,255,255,0.04); }
+  .store-card.active { background: rgba(255,199,44,0.08); border-left: 3px solid var(--yellow); }
+  .store-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+  .store-name { font-weight: 700; font-size: 0.95rem; }
+  .store-distance { font-size: 0.8rem; color: var(--yellow); font-weight: 700; }
+  .store-address { font-size: 0.8rem; color: #888; margin-bottom: 0.75rem; line-height: 1.4; }
+  .store-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .store-tag {
+    padding: 0.2rem 0.6rem; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+  }
+  .tag-open { background: rgba(29,185,84,0.15); color: var(--success); }
+  .tag-drivethru { background: rgba(218,41,28,0.15); color: var(--red); }
+  .tag-24h { background: rgba(255,199,44,0.15); color: var(--yellow); }
+  .map-area {
+    position: relative;
+    background: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .map-placeholder {
+    width: 100%; height: 100%; position: relative;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+  .map-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .map-road-h {
+    position: absolute; left: 0; right: 0; height: 3px;
+    background: rgba(255,255,255,0.12);
+  }
+  .map-road-v {
+    position: absolute; top: 0; bottom: 0; width: 3px;
+    background: rgba(255,255,255,0.12);
+  }
+  .map-marker {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .map-marker:hover { transform: translateY(-3px); }
+  .map-marker .pin {
+    width: 40px; height: 40px; border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .map-marker .pin span { transform: rotate(45deg); }
+  .map-marker .pin-label {
+    margin-top: 6px; font-size: 0.7rem; font-weight: 700;
+    background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;
+    white-space: nowrap; transform: none;
+  }
+  .pin-red { background: var(--red); }
+  .pin-yellow { background: var(--yellow); }
+  .map-my-loc {
+    position: absolute;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #4285F4; border: 3px solid white;
+    box-shadow: 0 0 0 8px rgba(66,133,244,0.2);
+    animation: locPulse 2s infinite;
+  }
+  @keyframes locPulse { 0%,100%{box-shadow: 0 0 0 8px rgba(66,133,244,0.2)} 50%{box-shadow: 0 0 0 16px rgba(66,133,244,0.05)} }
+
+  /* TRACK ORDER PAGE */
+  #page-track { background: #111; padding: 4rem 2rem; }
+  .track-container { max-width: 600px; margin: 0 auto; }
+  .track-header { text-align: center; margin-bottom: 3rem; }
+  .track-header h1 { font-family: 'Bebas Neue', cursive; font-size: 3rem; letter-spacing: 3px; color: var(--yellow); }
+  .order-lookup {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 2rem; margin-bottom: 2rem;
+    display: flex; gap: 0.75rem;
+  }
+  .track-input {
+    flex: 1; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 10px;
+    padding: 0.75rem 1rem; color: white; font-size: 0.95rem;
+    font-family: 'Barlow', sans-serif;
+  }
+  .track-input:focus { outline: none; border-color: var(--yellow); }
+  .track-input::placeholder { color: #666; }
+  .track-btn {
+    background: var(--yellow); color: var(--black); border: none;
+    padding: 0.75rem 1.5rem; border-radius: 10px;
+    font-weight: 700; cursor: pointer; font-family: 'Barlow', sans-serif;
+  }
+  .track-result {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 2rem;
+  }
+  .track-order-id {
+    font-family: 'Bebas Neue', cursive; font-size: 1.3rem; letter-spacing: 2px;
+    color: var(--yellow); margin-bottom: 1.5rem;
+  }
+  .status-timeline { display: flex; flex-direction: column; gap: 0; margin: 2rem 0; }
+  .timeline-step {
+    display: flex; gap: 1rem; align-items: flex-start; padding-bottom: 1.5rem;
+    position: relative;
+  }
+  .timeline-step::after {
+    content: ''; position: absolute;
+    left: 17px; top: 36px; bottom: 0;
+    width: 2px; background: rgba(255,255,255,0.1);
+  }
+  .timeline-step:last-child::after { display: none; }
+  .timeline-step.done::after { background: var(--red); }
+  .step-dot {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05); z-index: 1;
+  }
+  .timeline-step.done .step-dot { background: var(--red); border-color: var(--red); }
+  .timeline-step.active .step-dot {
+    background: var(--yellow); border-color: var(--yellow); color: var(--black);
+    animation: stepPulse 1.5s infinite;
+  }
+  .step-info h4 { font-weight: 700; font-size: 0.95rem; }
+  .step-info p { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
+  .eta-card {
+    background: var(--red); border-radius: 12px; padding: 1.5rem;
+    text-align: center; margin-top: 1.5rem;
+  }
+  .eta-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; }
+  .eta-time { font-family: 'Bebas Neue', cursive; font-size: 3.5rem; line-height: 1; }
+  .eta-sub { font-size: 0.85rem; opacity: 0.85; margin-top: 0.25rem; }
+
+  /* AUTH PAGE */
+  #page-auth {
+    background: linear-gradient(135deg, #1A0800 0%, #0D0D0D 100%);
+    display: none; min-height: 100vh; padding: 80px 2rem 2rem;
+    align-items: center; justify-content: center;
+  }
+  #page-auth.active { display: flex; }
+  .auth-card {
+    background: rgba(255,255,255,0.05); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+    padding: 3rem; width: 100%; max-width: 440px;
+  }
+  .auth-logo { text-align: center; margin-bottom: 2rem; }
+  .auth-logo h2 { font-family: 'Bebas Neue', cursive; font-size: 2rem; color: var(--yellow); }
+  .auth-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+  .auth-tab {
+    flex: 1; padding: 0.6rem; border-radius: 8px; text-align: center;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent; color: #888; transition: all 0.2s;
+    font-family: 'Barlow', sans-serif;
+  }
+  .auth-tab.active { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-input {
+    width: 100%; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 10px;
+    padding: 0.8rem 1rem; color: white; font-size: 0.95rem;
+    font-family: 'Barlow', sans-serif; transition: all 0.2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--yellow); background: rgba(255,199,44,0.05); }
+  .form-submit {
+    width: 100%; background: var(--yellow); color: var(--black);
+    border: none; padding: 0.9rem; border-radius: 10px;
+    font-weight: 800; font-size: 1rem; cursor: pointer;
+    transition: all 0.25s; font-family: 'Barlow', sans-serif;
+    text-transform: uppercase;
+  }
+  .form-submit:hover { background: var(--yellow-dark); }
+  .role-select { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .role-opt {
+    flex: 1; padding: 0.6rem; border-radius: 8px; text-align: center;
+    font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.15); color: #888;
+    transition: all 0.2s; font-family: 'Barlow', sans-serif;
+  }
+  .role-opt.active { border-color: var(--red); background: rgba(218,41,28,0.15); color: var(--red); }
+
+  /* ADMIN PAGE */
+  #page-admin { background: #111; }
+  .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 64px); }
+  .admin-sidebar {
+    background: var(--dark); border-right: 1px solid rgba(255,255,255,0.08);
+    padding: 1.5rem 0;
+  }
+  .admin-nav-item {
+    padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.75rem;
+    color: #888; font-weight: 600; font-size: 0.875rem; cursor: pointer;
+    transition: all 0.2s; border-left: 3px solid transparent;
+  }
+  .admin-nav-item:hover { color: white; background: rgba(255,255,255,0.04); }
+  .admin-nav-item.active { color: var(--yellow); background: rgba(255,199,44,0.08); border-left-color: var(--yellow); }
+  .admin-content { padding: 2rem; overflow-y: auto; }
+  .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 1.25rem;
+  }
+  .stat-card .stat-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+  .stat-card .stat-value { font-family: 'Bebas Neue', cursive; font-size: 2.5rem; color: var(--yellow); line-height: 1; }
+  .stat-card .stat-delta { font-size: 0.75rem; color: var(--success); margin-top: 0.25rem; }
+  .admin-orders-table { width: 100%; }
+  .admin-section-title { font-family: 'Bebas Neue', cursive; font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 1.25rem; color: var(--yellow); }
+  .orders-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .admin-order-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .admin-order-id { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; color: var(--yellow); min-width: 90px; }
+  .admin-order-items { flex: 1; font-size: 0.85rem; color: #ccc; }
+  .admin-order-type { font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 4px; }
+  .type-drivethru { background: rgba(218,41,28,0.2); color: var(--red); }
+  .type-pickup { background: rgba(255,199,44,0.15); color: var(--yellow); }
+  .admin-order-amount { font-weight: 700; color: white; min-width: 60px; }
+  .admin-order-actions { display: flex; gap: 0.5rem; }
+  .action-btn {
+    padding: 0.4rem 0.75rem; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    border: none; font-family: 'Barlow', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-accept { background: rgba(29,185,84,0.2); color: var(--success); }
+  .btn-accept:hover { background: var(--success); color: white; }
+  .btn-reject { background: rgba(218,41,28,0.15); color: var(--red); }
+  .btn-reject:hover { background: var(--red); color: white; }
+  .btn-update { background: rgba(255,199,44,0.15); color: var(--yellow); }
+  .btn-update:hover { background: var(--yellow); color: var(--black); }
+
+  /* NOTIFICATION */
+  .notification {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--black); border: 1px solid rgba(255,199,44,0.4);
+    border-left: 4px solid var(--yellow);
+    border-radius: 12px; padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    z-index: 2000; transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    max-width: 320px;
+  }
+  .notification.show { transform: translateX(0); }
+  .notif-text h4 { font-weight: 700; font-size: 0.9rem; }
+  .notif-text p { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 1500; display: none; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 2rem; width: 100%; max-width: 500px;
+    position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: rgba(255,255,255,0.1); border: none; color: white;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow', sans-serif;
+  }
+  .modal-title { font-family: 'Bebas Neue', cursive; font-size: 1.8rem; letter-spacing: 2px; color: var(--yellow); margin-bottom: 1.5rem; }
+
+  /* AI RECOMMENDATIONS */
+  .ai-rec-section {
+    background: rgba(255,199,44,0.05);
+    border: 1px solid rgba(255,199,44,0.2);
+    border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem;
+  }
+  .ai-rec-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+  .ai-badge-large {
+    background: var(--yellow); color: var(--black);
+    padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
+  }
+  .ai-rec-header span { font-weight: 700; font-size: 0.9rem; }
+  .ai-recs { display: flex; gap: 0.5rem; overflow-x: auto; }
+  .ai-rec-chip {
+    white-space: nowrap; padding: 0.5rem 0.75rem;
+    border-radius: 100px; border: 1px solid rgba(255,199,44,0.3);
+    background: rgba(255,199,44,0.08); color: #ddd;
+    font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+  }
+  .ai-rec-chip:hover { background: var(--yellow); color: var(--black); }
+
+  /* FOOTER */
+  footer {
+    background: var(--dark);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 3rem 2rem;
+    text-align: center; color: #555; font-size: 0.85rem;
+  }
+  footer .footer-logo { font-family: 'Bebas Neue', cursive; font-size: 1.5rem; color: var(--yellow); margin-bottom: 0.5rem; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .hero-content { grid-template-columns: 1fr; gap: 2rem; }
+    .hero-visual { display: none; }
+    .menu-layout { grid-template-columns: 1fr; }
+    .cart-sidebar { position: fixed; bottom: 0; left: 0; right: 0; top: auto; height: 60vh; z-index: 500; transform: translateY(100%); transition: transform 0.3s; }
+    .cart-sidebar.open { transform: translateY(0); }
+    .stores-layout { grid-template-columns: 1fr; }
+    .map-area { height: 300px; }
+    .admin-layout { grid-template-columns: 1fr; }
+    .admin-sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="nav-logo">Quick<span>Bite</span> 🍔</div>
+  <div class="nav-links">
+    <a href="#" class="active" onclick="showPage('home')">Home</a>
+    <a href="#" onclick="showPage('menu')">Menu</a>
+    <a href="#" onclick="showPage('track')">Track Order</a>
+    <a href="#" onclick="showPage('stores')">Stores</a>
+    <a href="#" onclick="showPage('admin')">Admin</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-cart" onclick="toggleCartMobile()">
+      🛒 Cart
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <button class="btn-login" onclick="showPage('auth')">Login</button>
+  </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="hero-bg-pattern"></div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">🚗 Drive-Thru Now Open</div>
+        <h1 class="hero-title">
+          Order <span class="accent">Fast</span>,<br>
+          Eat <span class="red">Faster</span>
+        </h1>
+        <p class="hero-subtitle">
+          Skip the line. Order online. Pull up and pick up — it's that simple.
+          Drive-thru technology meets your favourite flavours.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="showPage('menu')">Order Now →</button>
+          <button class="btn-secondary" onclick="showPage('stores')">Find Stores</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="num">2 MIN</div><div class="label">Avg. Drive-Thru</div></div>
+          <div class="hero-stat"><div class="num">48</div><div class="label">Locations</div></div>
+          <div class="hero-stat"><div class="num">4.8★</div><div class="label">App Rating</div></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="order-card">
+          <div class="order-card-header">
+            <span>Order #QB-2847</span>
+            <span class="order-status-badge status-preparing">Preparing</span>
+          </div>
+          <div class="order-items">
+            <div class="order-item"><span class="item-name">🍔 Double Smash Burger</span><span class="item-price">$8.99</span></div>
+            <div class="order-item"><span class="item-name">🍟 Large Fries</span><span class="item-price">$3.49</span></div>
+            <div class="order-item"><span class="item-name">🥤 Fountain Drink</span><span class="item-price">$1.99</span></div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-step step-done">Received</div>
+            <div class="progress-step step-active">Preparing</div>
+            <div class="progress-step step-pending">Ready</div>
+            <div class="progress-step step-pending">Done</div>
+          </div>
+        </div>
+        <div class="drive-thru-badge">
+          <div class="drive-thru-icon">🚗</div>
+          <div class="drive-thru-text">
+            <h4>Drive-Thru Ready!</h4>
+            <p>Pull up to Lane 2 — Est. 4 mins</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section">
+    <div class="section-header">
+      <div class="section-label">Why QuickBite?</div>
+      <h2 class="section-title">Drive-Thru Reinvented</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🚗</div>
+        <h3>Smart Drive-Thru</h3>
+        <p>Order ahead, skip the speaker. Pull up and your food is ready.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <h3>Store Locator</h3>
+        <p>Find the nearest location with real-time open/closed status and directions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Live Tracking</h3>
+        <p>Follow your order from kitchen to window in real time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI Recommendations</h3>
+        <p>Get personalised meal suggestions based on your history and time of day.</p>
+      </div>
+    </div>
+  </section>
+  <footer>
+    <div class="footer-logo">QuickBite 🍔</div>
+    <p>© 2025 QuickBite Inc. All rights reserved. Fast food, faster technology.</p>
+  </footer>
+</div>
+
+<!-- MENU PAGE -->
+<div id="page-menu" class="page">
+  <div class="menu-header">
+    <h1>Our Menu</h1>
+    <p>Fresh ingredients, bold flavours — made your way</p>
+  </div>
+  <div class="category-tabs" id="categoryTabs"></div>
+  <div class="menu-layout">
+    <div class="menu-grid-area">
+      <div class="ai-rec-section">
+        <div class="ai-rec-header">
+          <span class="ai-badge-large">AI</span>
+          <span>Recommended for you right now</span>
+        </div>
+        <div class="ai-recs" id="aiRecs"></div>
+      </div>
+      <div class="menu-grid" id="menuGrid"></div>
+    </div>
+    <div class="cart-sidebar" id="cartSidebar">
+      <div class="cart-title">Your Order</div>
+      <div class="cart-items" id="cartItems">
+        <div class="cart-empty">Your cart is empty.<br>Start adding items! 🍔</div>
+      </div>
+      <div id="cartSummary" style="display:none">
+        <hr class="cart-divider">
+        <div class="cart-row"><span>Subtotal</span><span id="cartSubtotal">$0.00</span></div>
+        <div class="cart-row"><span>Tax (8%)</span><span id="cartTax">$0.00</span></div>
+        <hr class="cart-divider">
+        <div class="cart-row total"><span>Total</span><span id="cartTotal">$0.00</span></div>
+        <div class="pickup-options">
+          <div class="pickup-option selected" onclick="selectPickup('drivethru',this)">
+            <input type="radio" name="pickup" checked> 🚗
+            <div class="pickup-label">Drive-Thru <small>~4 min wait</small></div>
+          </div>
+          <div class="pickup-option" onclick="selectPickup('counter',this)">
+            <input type="radio" name="pickup">  🏪
+            <div class="pickup-label">Counter Pickup <small>~8 min wait</small></div>
+          </div>
+        </div>
+        <button class="checkout-btn" onclick="placeOrder()">Place Order 🚀</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STORES PAGE -->
+<div id="page-stores" class="page">
+  <div class="stores-layout">
+    <div class="stores-sidebar">
+      <div class="stores-sidebar-header">
+        <h2>Nearby Stores</h2>
+        <button class="location-btn" onclick="detectLocation()">📍 Use My Location</button>
+      </div>
+      <div id="storesList"></div>
+    </div>
+    <div class="map-area">
+      <div class="map-placeholder" id="mapPlaceholder">
+        <div class="map-grid"></div>
+        <!-- Roads -->
+        <div class="map-road-h" style="top:30%"></div>
+        <div class="map-road-h" style="top:55%"></div>
+        <div class="map-road-h" style="top:75%"></div>
+        <div class="map-road-v" style="left:25%"></div>
+        <div class="map-road-v" style="left:50%"></div>
+        <div class="map-road-v" style="left:72%"></div>
+        <!-- Store Markers -->
+        <div class="map-marker" style="top:26%;left:22%" onclick="selectStore(0)">
+          <div class="pin pin-red"><span>🍔</span></div>
+          <div class="pin-label">Downtown</div>
+        </div>
+        <div class="map-marker" style="top:50%;left:47%" onclick="selectStore(1)">
+          <div class="pin pin-red"><span>🍔</span></div>
+          <div class="pin-label">Midtown</div>
+        </div>
+        <div class="map-marker" style="top:28%;left:68%" onclick="selectStore(2)">
+          <div class="pin pin-yellow"><span>🍔</span></div>
+          <div class="pin-label">East Side</div>
+        </div>
+        <div class="map-marker" style="top:68%;left:60%" onclick="selectStore(3)">
+          <div class="pin pin-red"><span>🍔</span></div>
+          <div class="pin-label">Airport</div>
+        </div>
+        <div class="map-marker" style="top:72%;left:30%" onclick="selectStore(4)">
+          <div class="pin pin-red"><span>🍔</span></div>
+          <div class="pin-label">Westfield</div>
+        </div>
+        <!-- User location -->
+        <div class="map-my-loc" style="position:absolute;top:52%;left:50%" id="userMarker"></div>
+        <div style="position:absolute;bottom:1rem;right:1rem;background:rgba(0,0,0,0.6);padding:0.5rem 0.75rem;border-radius:8px;font-size:0.75rem;color:#aaa">
+          📍 Google Maps Integration Ready
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRACK ORDER PAGE -->
+<div id="page-track" class="page">
+  <div class="track-container">
+    <div class="track-header">
+      <h1>Track Your Order</h1>
+      <p style="color:#888">Enter your order ID to get live updates</p>
+    </div>
+    <div class="order-lookup">
+      <input class="track-input" id="trackInput" placeholder="Enter Order ID (e.g. QB-2847)" value="QB-2847">
+      <button class="track-btn" onclick="trackOrder()">Track →</button>
+    </div>
+    <div class="track-result" id="trackResult" style="display:none"></div>
+  </div>
+</div>
+
+<!-- AUTH PAGE -->
+<div id="page-auth" class="page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h2>🍔 QuickBite</h2>
+      <p style="color:#888;font-size:0.85rem;margin-top:0.25rem">Sign in to order & track</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login',this)">Login</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup',this)">Sign Up</button>
+    </div>
+    <div class="role-select" id="roleSelect" style="display:none">
+      <div class="role-opt active" onclick="selectRole('customer',this)">👤 Customer</div>
+      <div class="role-opt" onclick="selectRole('admin',this)">🔑 Admin</div>
+    </div>
+    <div id="authForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input class="form-input" type="email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-input" type="password" placeholder="••••••••">
+      </div>
+      <button class="form-submit" onclick="handleAuth()">Login</button>
+      <p style="text-align:center;color:#666;font-size:0.8rem;margin-top:1rem">
+        Demo: admin@quickbite.com / admin123
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="page">
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div style="padding:1rem 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.08)">
+        <div style="font-family:'Bebas Neue',cursive;font-size:1.2rem;color:var(--yellow)">Admin Panel</div>
+        <div style="font-size:0.75rem;color:#666;margin-top:0.25rem">QuickBite HQ</div>
+      </div>
+      <div class="admin-nav-item active" onclick="switchAdminTab('dashboard',this)">📊 Dashboard</div>
+      <div class="admin-nav-item" onclick="switchAdminTab('orders',this)">📋 Orders</div>
+      <div class="admin-nav-item" onclick="switchAdminTab('menu',this)">🍔 Menu Items</div>
+      <div class="admin-nav-item" onclick="switchAdminTab('stores',this)">📍 Stores</div>
+      <div class="admin-nav-item" onclick="switchAdminTab('analytics',this)">📈 Analytics</div>
+    </div>
+    <div class="admin-content" id="adminContent"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notification" id="notification">
+  <span style="font-size:1.5rem" id="notifIcon">🍔</span>
+  <div class="notif-text">
+    <h4 id="notifTitle">Order Update</h4>
+    <p id="notifMsg">Your order is being prepared</p>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const menuData = [
+  { id:1, name:"Double Smash Burger", cat:"Burgers", price:8.99, emoji:"🍔", desc:"Two smashed beef patties, special sauce, pickles, onions", badge:"bestseller", ai:true },
+  { id:2, name:"Crispy Chicken Sandwich", cat:"Burgers", price:7.49, emoji:"🥪", desc:"Hand-battered crispy chicken, slaw, honey mustard", badge:"new" },
+  { id:3, name:"Bacon BBQ Stack", cat:"Burgers", price:10.99, emoji:"🍔", desc:"Triple patty, cheddar, bacon, smoky BBQ sauce", badge:"" },
+  { id:4, name:"Veggie Black Bean", cat:"Burgers", price:7.99, emoji:"🥗", desc:"Housemade black bean patty, avocado, sprouts", badge:"" },
+  { id:5, name:"Large Fries", cat:"Sides", price:3.49, emoji:"🍟", desc:"Golden, crispy, perfectly salted", badge:"", ai:true },
+  { id:6, name:"Onion Rings", cat:"Sides", price:3.99, emoji:"🧅", desc:"Beer-battered golden rings with dipping sauce", badge:"" },
+  { id:7, name:"Mac & Cheese Bites", cat:"Sides", price:4.49, emoji:"🧀", desc:"Crispy fried mac & cheese bites, sriracha aioli", badge:"new" },
+  { id:8, name:"Coleslaw Cup", cat:"Sides", price:1.99, emoji:"🥙", desc:"Creamy house-made coleslaw", badge:"" },
+  { id:9, name:"Chocolate Milkshake", cat:"Drinks", price:5.99, emoji:"🥤", desc:"Thick, creamy, hand-spun chocolate shake", badge:"", ai:true },
+  { id:10, name:"Fresh Lemonade", cat:"Drinks", price:3.49, emoji:"🍋", desc:"Hand-squeezed with a hint of mint", badge:"" },
+  { id:11, name:"Fountain Drink", cat:"Drinks", price:1.99, emoji:"🥤", desc:"Any soda, any size — free refills!", badge:"" },
+  { id:12, name:"Iced Coffee", cat:"Drinks", price:3.99, emoji:"☕", desc:"Cold brew over ice with oat milk", badge:"" },
+  { id:13, name:"Hot Apple Pie", cat:"Desserts", price:2.49, emoji:"🥧", desc:"Warm flaky pastry, cinnamon-spiced filling", badge:"" },
+  { id:14, name:"Soft Serve Cone", cat:"Desserts", price:1.99, emoji:"🍦", desc:"Creamy vanilla soft serve", badge:"", ai:true },
+  { id:15, name:"Brownie Sundae", cat:"Desserts", price:4.99, emoji:"🍫", desc:"Warm brownie, vanilla ice cream, hot fudge", badge:"new" },
+];
+
+const storesData = [
+  { id:0, name:"QuickBite Downtown", address:"123 Main St, Downtown District", dist:"0.3 mi", tags:["open","drivethru","24h"], hours:"24 Hours", lat:40.75, lng:-74.00 },
+  { id:1, name:"QuickBite Midtown", address:"456 Central Ave, Midtown", dist:"0.8 mi", tags:["open","drivethru"], hours:"6am – 12am", lat:40.76, lng:-73.98 },
+  { id:2, name:"QuickBite East Side", address:"789 East Blvd, East District", dist:"1.2 mi", tags:["open"], hours:"7am – 11pm", lat:40.75, lng:-73.96 },
+  { id:3, name:"QuickBite Airport", address:"Airport Terminal B, Connector Rd", dist:"2.1 mi", tags:["open","drivethru","24h"], hours:"24 Hours", lat:40.78, lng:-73.97 },
+  { id:4, name:"QuickBite Westfield", address:"Westfield Mall, West Wing", dist:"3.4 mi", tags:["open","drivethru"], hours:"9am – 10pm", lat:40.74, lng:-74.02 },
+];
+
+const adminOrders = [
+  { id:"QB-2847", items:"Double Smash Burger × 1, Large Fries × 1, Iced Coffee × 1", type:"drivethru", amount:"$16.47", status:"preparing" },
+  { id:"QB-2846", items:"Crispy Chicken Sandwich × 2, Onion Rings × 1, Milkshake × 2", type:"counter", amount:"$29.94", status:"received" },
+  { id:"QB-2845", items:"Bacon BBQ Stack × 1, Large Fries × 1, Lemonade × 1", type:"drivethru", amount:"$17.97", status:"ready" },
+  { id:"QB-2844", items:"Veggie Black Bean × 3, Coleslaw × 3, Fountain Drink × 3", type:"counter", amount:"$29.91", status:"completed" },
+];
+
+// State
+let cart = {};
+let selectedPickup = 'drivethru';
+let activeCategory = 'All';
+
+// ==================== NAV ====================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const pages = ['home','menu','track','stores','admin'];
+  const idx = pages.indexOf(page);
+  if (idx >= 0 && navLinks[idx]) navLinks[idx].classList.add('active');
+  window.scrollTo(0,0);
+  if (page === 'menu') initMenu();
+  if (page === 'stores') initStores();
+  if (page === 'admin') initAdmin('dashboard');
+}
+
+// ==================== MENU ====================
+function initMenu() {
+  const categories = ['All', ...new Set(menuData.map(i => i.cat))];
+  const tabsEl = document.getElementById('categoryTabs');
+  tabsEl.innerHTML = categories.map(c =>
+    `<button class="tab-btn ${c===activeCategory?'active':''}" onclick="filterMenu('${c}',this)">${c}</button>`
+  ).join('');
+  renderMenu();
+  renderAIRecs();
+}
+
+function filterMenu(cat, btn) {
+  activeCategory = cat;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenu();
+}
+
+function renderMenu() {
+  const items = activeCategory === 'All' ? menuData : menuData.filter(i => i.cat === activeCategory);
+  document.getElementById('menuGrid').innerHTML = items.map(item => `
+    <div class="menu-item-card">
+      <div class="menu-item-img" style="background:linear-gradient(135deg,#1a0800,#2a1400)">
+        ${item.badge ? `<div class="menu-item-badge">${item.badge}</div>` : ''}
+        ${item.ai ? `<div class="ai-badge">AI Pick</div>` : ''}
+        <span>${item.emoji}</span>
+      </div>
+      <div class="menu-item-info">
+        <h3>${item.name}</h3>
+        <p>${item.desc}</p>
+        <div class="menu-item-footer">
+          <div class="menu-item-price">$${item.price.toFixed(2)}</div>
+          <button class="add-btn" onclick="addToCart(${item.id})">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAIRecs() {
+  const recs = menuData.filter(i => i.ai).map(i =>
+    `<div class="ai-rec-chip" onclick="addToCart(${i.id})">${i.emoji} ${i.name} — $${i.price.toFixed(2)}</div>`
+  ).join('');
+  document.getElementById('aiRecs').innerHTML = recs;
+}
+
+function addToCart(id) {
+  const item = menuData.find(i => i.id === id);
+  if (!item) return;
+  cart[id] = cart[id] ? { ...cart[id], qty: cart[id].qty + 1 } : { ...item, qty: 1 };
+  renderCart();
+  showNotification('🍔', 'Added to cart!', item.name + ' added successfully');
+}
+
+function renderCart() {
+  const keys = Object.keys(cart);
+  const countEl = document.getElementById('cartCount');
+  const total = keys.reduce((s, k) => s + cart[k].qty, 0);
+  countEl.textContent = total;
+  const itemsEl = document.getElementById('cartItems');
+  const summaryEl = document.getElementById('cartSummary');
+  if (!keys.length) {
+    itemsEl.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Start adding items! 🍔</div>';
+    summaryEl.style.display = 'none';
+    return;
+  }
+  itemsEl.innerHTML = keys.map(k => {
+    const it = cart[k];
+    return `
+      <div class="cart-item">
+        <span class="cart-item-emoji">${it.emoji}</span>
+        <span class="cart-item-name">${it.name}</span>
+        <div class="cart-item-controls">
+          <button class="qty-btn" onclick="changeQty(${it.id},-1)">−</button>
+          <span class="cart-item-qty">${it.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${it.id},1)">+</button>
+        </div>
+        <span class="cart-item-price">$${(it.price * it.qty).toFixed(2)}</span>
+      </div>`;
+  }).join('');
+  const sub = keys.reduce((s, k) => s + cart[k].price * cart[k].qty, 0);
+  const tax = sub * 0.08;
+  document.getElementById('cartSubtotal').textContent = '$' + sub.toFixed(2);
+  document.getElementById('cartTax').textContent = '$' + tax.toFixed(2);
+  document.getElementById('cartTotal').textContent = '$' + (sub + tax).toFixed(2);
+  summaryEl.style.display = 'block';
+}
+
+function changeQty(id, delta) {
+  if (!cart[id]) return;
+  cart[id].qty += delta;
+  if (cart[id].qty <= 0) delete cart[id];
+  renderCart();
+}
+
+function selectPickup(type, el) {
+  selectedPickup = type;
+  document.querySelectorAll('.pickup-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleCartMobile() {
+  document.getElementById('cartSidebar').classList.toggle('open');
+}
+
+function placeOrder() {
+  if (!Object.keys(cart).length) return;
+  const orderId = 'QB-' + (Math.floor(Math.random() * 1000) + 2848);
+  cart = {};
+  renderCart();
+  showPage('track');
+  document.getElementById('trackInput').value = orderId;
+  trackOrder();
+  showNotification('🎉', 'Order Placed!', orderId + ' — ' + (selectedPickup === 'drivethru' ? 'Drive-Thru Lane 2' : 'Counter Pickup'));
+}
+
+// ==================== STORES ====================
+function initStores() {
+  const listEl = document.getElementById('storesList');
+  listEl.innerHTML = storesData.map((s, i) => `
+    <div class="store-card ${i===0?'active':''}" onclick="selectStore(${s.id})" id="storeCard${s.id}">
+      <div class="store-card-header">
+        <div class="store-name">${s.name}</div>
+        <div class="store-distance">${s.dist}</div>
+      </div>
+      <div class="store-address">${s.address}<br>🕒 ${s.hours}</div>
+      <div class="store-tags">
+        ${s.tags.map(t => `<span class="store-tag tag-${t}">${t==='open'?'Open':t==='drivethru'?'Drive-Thru':t==='24h'?'24 Hours':t}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectStore(id) {
+  document.querySelectorAll('.store-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('storeCard' + id);
+  if (card) card.classList.add('active');
+  showNotification('📍', storesData[id].name, storesData[id].address);
+}
+
+function detectLocation() {
+  showNotification('📍', 'Location detected!', 'Showing stores nearest to you');
+}
+
+// ==================== TRACK ====================
+function trackOrder() {
+  const id = document.getElementById('trackInput').value || 'QB-2847';
+  const resultEl = document.getElementById('trackResult');
+  const steps = [
+    { label:'Order Received', desc:'We got your order!', icon:'✅', done:true },
+    { label:'Preparing', desc:'Kitchen is making your food', icon:'👨‍🍳', active:true },
+    { label:'Ready for Pickup', desc:'Head to the window', icon:'🔔', pending:true },
+    { label:'Completed', desc:'Enjoy your meal!', icon:'🎉', pending:true },
+  ];
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div class="track-order-id">Order ${id}</div>
+    <div style="font-size:0.85rem;color:#888;margin-bottom:0.5rem">
+      ${selectedPickup === 'drivethru' ? '🚗 Drive-Thru — Lane 2' : '🏪 Counter Pickup'} · QuickBite Downtown
+    </div>
+    <div class="status-timeline">
+      ${steps.map(s => `
+        <div class="timeline-step ${s.done?'done':s.active?'active':''}">
+          <div class="step-dot">${s.icon}</div>
+          <div class="step-info">
+            <h4>${s.label}</h4>
+            <p>${s.desc}</p>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="eta-card">
+      <div class="eta-label">Estimated Ready In</div>
+      <div class="eta-time">4:30</div>
+      <div class="eta-sub">min · Drive up to Lane 2 when ready</div>
+    </div>
+    <div style="margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.04);border-radius:12px;font-size:0.85rem;color:#aaa;text-align:center">
+      🔔 We'll notify you when your order is ready
+    </div>
+  `;
+  // Simulate countdown
+  let secs = 270;
+  const int = setInterval(() => {
+    secs--;
+    if (secs <= 0) { clearInterval(int); return; }
+    const m = Math.floor(secs/60);
+    const s = secs % 60;
+    const etaEl = resultEl.querySelector('.eta-time');
+    if (etaEl) etaEl.textContent = m + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+
+// ==================== AUTH ====================
+function switchAuthTab(tab, btn) {
+  document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const roleEl = document.getElementById('roleSelect');
+  const submitBtn = document.querySelector('.form-submit');
+  if (tab === 'signup') {
+    roleEl.style.display = 'flex';
+    submitBtn.textContent = 'Create Account';
+  } else {
+    roleEl.style.display = 'none';
+    submitBtn.textContent = 'Login';
+  }
+}
+
+function selectRole(role, el) {
+  document.querySelectorAll('.role-opt').forEach(r => r.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function handleAuth() {
+  showPage('home');
+  showNotification('👋', 'Welcome back!', 'You are logged in successfully');
+}
+
+// ==================== ADMIN ====================
+function initAdmin(tab) {
+  renderAdminContent(tab);
+}
+
+function switchAdminTab(tab, el) {
+  document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  renderAdminContent(tab);
+}
+
+function renderAdminContent(tab) {
+  const el = document.getElementById('adminContent');
+  if (tab === 'dashboard') {
+    el.innerHTML = `
+      <div class="admin-section-title">Dashboard Overview</div>
+      <div class="admin-stats">
+        <div class="stat-card"><div class="stat-label">Today's Orders</div><div class="stat-value">284</div><div class="stat-delta">↑ +12% from yesterday</div></div>
+        <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" style="font-size:1.8rem">$4,182</div><div class="stat-delta">↑ +8.3% from yesterday</div></div>
+        <div class="stat-card"><div class="stat-label">Drive-Thru Orders</div><div class="stat-value">168</div><div class="stat-delta">59% of total orders</div></div>
+        <div class="stat-card"><div class="stat-label">Avg. Prep Time</div><div class="stat-value">3.8<span style="font-size:1rem">min</span></div><div class="stat-delta">↓ 0.4 min improvement</div></div>
+      </div>
+      <div class="admin-section-title">Recent Orders</div>
+      ${renderOrdersList()}
+    `;
+  } else if (tab === 'orders') {
+    el.innerHTML = `<div class="admin-section-title">All Orders</div>${renderOrdersList()}`;
+  } else if (tab === 'menu') {
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <div class="admin-section-title" style="margin:0">Menu Items</div>
+        <button class="btn-primary" style="font-size:0.85rem;padding:0.5rem 1rem" onclick="showNotification('✅','Menu Item Added','New item has been created')">+ Add Item</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+        ${menuData.slice(0,9).map(item => `
+          <div class="stat-card" style="text-align:center">
+            <div style="font-size:2.5rem;margin-bottom:0.5rem">${item.emoji}</div>
+            <div style="font-weight:700;font-size:0.9rem;margin-bottom:0.25rem">${item.name}</div>
+            <div style="color:var(--yellow);font-weight:700;margin-bottom:0.75rem">$${item.price.toFixed(2)}</div>
+            <div style="display:flex;gap:0.4rem;justify-content:center">
+              <button class="action-btn btn-update" onclick="showNotification('✏️','Edit Mode','Editing ${item.name.replace(/'/g,"\\'")}')">Edit</button>
+              <button class="action-btn btn-reject" onclick="showNotification('🗑️','Item Removed','${item.name.replace(/'/g,"\\'")} removed from menu')">Del</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (tab === 'stores') {
+    el.innerHTML = `
+      <div class="admin-section-title">Store Management</div>
+      ${storesData.map(s => `
+        <div class="admin-order-card" style="margin-bottom:0.75rem">
+          <div>
+            <div style="font-weight:700">${s.name}</div>
+            <div style="font-size:0.8rem;color:#888;margin-top:0.2rem">${s.address}</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="font-size:0.8rem;color:#aaa">${s.hours}</div>
+          <div style="display:flex;gap:0.5rem">
+            <button class="action-btn tag-open" onclick="showNotification('✅','Store Updated','${s.name.replace(/'/g,"\\'")} hours updated')">Edit Hours</button>
+            <button class="action-btn btn-accept" onclick="showNotification('✅','Store Open','${s.name.replace(/'/g,"\\'")} is now open')">Open</button>
+            <button class="action-btn btn-reject" onclick="showNotification('🔴','Store Closed','${s.name.replace(/'/g,"\\'")} has been closed')">Close</button>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  } else if (tab === 'analytics') {
+    el.innerHTML = `
+      <div class="admin-section-title">Analytics</div>
+      <div class="admin-stats">
+        <div class="stat-card"><div class="stat-label">This Week</div><div class="stat-value" style="font-size:1.8rem">$28.4K</div><div class="stat-delta">↑ +15% vs last week</div></div>
+        <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" style="font-size:1.8rem">$98K</div><div class="stat-delta">↑ +22% vs last month</div></div>
+        <div class="stat-card"><div class="stat-label">Top Item</div><div class="stat-value" style="font-size:1.4rem">🍔 Smash</div><div class="stat-delta">342 sold today</div></div>
+        <div class="stat-card"><div class="stat-label">Peak Hours</div><div class="stat-value" style="font-size:1.4rem">12–2PM</div><div class="stat-delta">68 orders/hr average</div></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.5rem;margin-top:1rem">
+        <div style="font-weight:700;margin-bottom:1rem;color:var(--yellow)">Orders This Week (Mon–Sun)</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:120px">
+          ${[180,210,190,280,320,260,284].map((v,i) => {
+            const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            const h = Math.round((v/320)*100);
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="font-size:0.7rem;color:#888">${v}</div>
+              <div style="width:100%;background:${i===6?'var(--yellow)':'var(--red)'};border-radius:4px 4px 0 0;height:${h}px"></div>
+              <div style="font-size:0.7rem;color:#666">${days[i]}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+}
+
+function renderOrdersList() {
+  return `
+    <div class="orders-list">
+      ${adminOrders.map(o => `
+        <div class="admin-order-card">
+          <div class="admin-order-id">${o.id}</div>
+          <div class="admin-order-items">${o.items}</div>
+          <div class="admin-order-type type-${o.type}">${o.type==='drivethru'?'🚗 Drive-Thru':'🏪 Counter'}</div>
+          <div class="admin-order-amount">${o.amount}</div>
+          <div class="admin-order-actions">
+            ${o.status==='received'?`<button class="action-btn btn-accept" onclick="showNotification('✅','Order Accepted','${o.id} is being prepared')">Accept</button><button class="action-btn btn-reject" onclick="showNotification('❌','Order Rejected','${o.id} was rejected')">Reject</button>`:''}
+            ${o.status==='preparing'?`<button class="action-btn btn-update" onclick="showNotification('🔔','Order Ready','${o.id} is ready for pickup')">Mark Ready</button>`:''}
+            ${o.status==='ready'?`<button class="action-btn btn-accept" onclick="showNotification('✅','Completed','${o.id} order completed')">Complete</button>`:''}
+            ${o.status==='completed'?`<span style="font-size:0.75rem;color:var(--success)">✅ Completed</span>`:''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ==================== NOTIFICATIONS ====================
+function showNotification(icon, title, msg) {
+  document.getElementById('notifIcon').textContent = icon;
+  document.getElementById('notifTitle').textContent = title;
+  document.getElementById('notifMsg').textContent = msg;
+  const n = document.getElementById('notification');
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3500);
+}
+
+// Init
+initMenu();
+initStores();
+trackOrder();
+
+// Simulate real-time order update
+setTimeout(() => showNotification('🔔','Order Update','QB-2847 is now ready for pickup!'), 5000);
+</script>
+</body>
+</html>
